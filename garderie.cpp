@@ -6,6 +6,8 @@ Garderie::Garderie(QWidget *parent) :
     ui(new Ui::Garderie)
 {
     ui->setupUi(this);
+    setWindowTitle("Service workspace");
+
 
     //show database content
     show_tables();
@@ -47,12 +49,41 @@ ui->description_activite->clear();
 ui->etablissement_activite->setCurrentIndex(0);
 ui->duree_activite->setValue(0);
 }
+//------------------------------------------------------------------------------------------
+//recuperation des donnees du formulaire etablissement
+QString Garderie::get_id_etablissement() const { return ui->id_etablissement->text();}
+QString Garderie::get_nom_etablissement() const { return ui->nom_etablissement->text();}
+QString Garderie::get_addresse_etablissement() const { return ui->addresse_etablissement->text();}
+QString Garderie::get_tel_etablissement() const { return ui->tel_etablissement->text();}
 
+//remplissage des champs du formulaire etablissement a partir de la base
+void Garderie::fill_form_etablissement(QString selected_etablissement ) {
+    QSqlQuery query;
+    query.prepare("select * from etablissement where id= :sel");
+    query.bindValue(":sel", selected_etablissement);
+    query.exec();
+    while(query.next()){
+        ui->id_etablissement->setText(selected_activite);
+        ui->nom_etablissement->setText(query.value(1).toString());
+        ui->addresse_etablissement->setText(query.value(2).toString());
+        ui->tel_etablissement->setText(query.value(3).toString());
+    }
+}
+
+//clear the form etablissement
+void Garderie::clear_form_etablissement(){
+ui->id_etablissement->clear();
+ui->nom_etablissement->clear();
+ui->addresse_etablissement->clear();
+ui->tel_etablissement->clear();
+}
 
 //*******************************************[ CRUD ]*******************************************//
 
 void Garderie::show_tables(){
     show_table_activite();
+    show_table_etablissement();
+    ui->etablissement_activite->setModel(tmp_etablissement.liste_etablissement());
 }
 //------------------------------------------------------------------------------------------
 //ajout activite
@@ -146,6 +177,83 @@ void Garderie::show_table_activite(){
    //remplissage tableau avec le masque
     ui->tableau_activite->setModel(proxy_activite);
 }
+//------------------------------------------------------------------------------------------
+//ajout etablissement
+void Garderie::on_ajouter_etablissement_clicked()
+{
+    //recuperation des donnees
+        QString s1=get_id_etablissement();
+        QString s2=get_nom_etablissement();
+        QString s3=get_addresse_etablissement();
+        QString s4=get_tel_etablissement();
+
+    //ajout
+        etablissement e(s1,s2,s3,s4);
+        e.ajouter();
+
+    //refresh du tableau (affichage)
+     show_tables();
+     clear_form_etablissement();
+}
+//recuperer l'id, on l'appelle selected etablissement
+void Garderie::on_tableau_etablissement_clicked(const QModelIndex &index){ selected_etablissement=ui->tableau_etablissement->model()->data(index).toString();}
+//remplissage form etablissement
+void Garderie::on_tableau_etablissement_doubleClicked(const QModelIndex &index){ fill_form_etablissement(selected_etablissement);}
+//mofdifier tableau etablissement
+void Garderie::on_modifier_etablissement_clicked()
+{
+    //recuperation des donnees
+    QString s2=get_nom_etablissement();
+    QString s3=get_addresse_etablissement();
+    QString s4=get_tel_etablissement();
+
+    //mofication
+      etablissement e(selected_etablissement,s2,s3,s4);
+      e.modifier(selected_etablissement);
+
+    //refresh du tableau (affichage)
+     show_tables();
+     clear_form_etablissement();
+}
+//supprimer etablissement
+void Garderie::on_supprimer_etablissement_clicked()
+{
+    etablissement e;
+    e.supprimer(selected_etablissement);
+
+ //refresh du tableau (affichage)
+    show_tables();
+}
+//affichage activite + metier tri activite
+void Garderie::show_table_etablissement(){
+//creation model (masque du tableau) : permet recherche et tri
+    proxy_etablissement = new QSortFilterProxyModel();
+
+ //definir la source (tableau original)
+    proxy_etablissement->setSourceModel(tmp_etablissement.afficher());
+
+ //pour la recherche
+    proxy_etablissement->setFilterCaseSensitivity(Qt::CaseInsensitive); // S=s (pas de difference entre majiscule et miniscule)
+    proxy_etablissement->setFilterKeyColumn(-1); // chercher dans tout le tableau (-1) ou donner le numero de la colone
+   //remplissage tableau avec le masque
+    ui->tableau_etablissement->setModel(proxy_etablissement);
+}
+
+//*******************************************[ METIER ]*******************************************//
+//recherche dynamique activite
+void Garderie::on_recherche_activite_textChanged(const QString &arg1){proxy_activite->setFilterFixedString(arg1);}
+//select sorting creteria activite
+void Garderie::on_sort_combo_activite_currentIndexChanged(int index){ proxy_activite->setFilterKeyColumn(ui->sort_combo_activite->currentIndex()-1);}
+
+
+//------------------------------------------------------------------------------------------
+//recherche dynamique etablissement
+void Garderie::on_recherche_etablissement_textChanged(const QString &arg1){proxy_etablissement->setFilterFixedString(arg1);}
+//select sorting creteria
+void Garderie::on_sort_combo_etablissement_currentIndexChanged(int index){proxy_etablissement->setFilterKeyColumn(ui->sort_combo_etablissement->currentIndex()-1);}//combox et tableau indice decalé par 1
+
+
+
 
 
 

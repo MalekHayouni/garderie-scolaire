@@ -17,8 +17,8 @@
 #include <QFile>
 #include <QDataStream>
 
-
 #include "activite.h"
+#include "etablissement.h"
 
 
 namespace Ui {
@@ -50,6 +50,18 @@ public:
     activite tmp_activite;
     QSortFilterProxyModel *proxy_activite;
 
+/*************** etablissement *********************/
+
+    QString get_id_etablissement() const;
+    QString get_nom_etablissement() const;
+    QString get_addresse_etablissement() const;
+    QString get_tel_etablissement() const;
+
+    void fill_form_etablissement(QString);
+    void clear_form_etablissement();
+
+    etablissement tmp_etablissement;
+    QSortFilterProxyModel *proxy_etablissement;
 
 
 private slots:
@@ -70,11 +82,26 @@ private slots:
 
     void on_sort_combo_activite_currentIndexChanged(int index);
 
+/*************** etablissement *********************/
+    void on_ajouter_etablissement_clicked();
+    void on_modifier_etablissement_clicked();
+    void on_supprimer_etablissement_clicked();
+    void show_table_etablissement();
+
+    void on_export_excel_clicked();
+
+    void on_tableau_etablissement_clicked(const QModelIndex &index);
+
+    void on_recherche_etablissement_textChanged(const QString &arg1);
+
+    void on_tableau_etablissement_doubleClicked(const QModelIndex &index);
+
+    void on_sort_combo_etablissement_currentIndexChanged(int index);
 
 private:
     Ui::Garderie *ui;
-    QString selected_activite="";
-    QString mail_pass="!211JMT7298!";
+    QString selected_activite="",selected_etablissement="";
+
 };
 
 #endif // GARDERIE_H
