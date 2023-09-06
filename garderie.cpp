@@ -9,6 +9,20 @@ Garderie::Garderie(QWidget *parent) :
     setWindowTitle("Service workspace");
 
 
+
+    //chat bot initialisation
+    m_chatBot = new ChatBot(this);
+    connect(ui->lineEdit, &QLineEdit::returnPressed,
+            this, [this]() {
+                QString message = ui->lineEdit->text();
+                ui->textEdit->append("you: " + message);
+                m_chatBot->receiveMessage(message);
+                ui->lineEdit->clear();
+            });
+    connect(m_chatBot, &ChatBot::sendMessage, ui->textEdit, [this](const QString& response) {
+        ui->textEdit->append("bot: " + response);
+    });
+
     //show database content
     show_tables();
 }
@@ -245,12 +259,46 @@ void Garderie::on_recherche_activite_textChanged(const QString &arg1){proxy_acti
 //select sorting creteria activite
 void Garderie::on_sort_combo_activite_currentIndexChanged(int index){ proxy_activite->setFilterKeyColumn(ui->sort_combo_activite->currentIndex()-1);}
 
+//stat activite
+void Garderie::on_stat_activite_clicked()
+{
+  sd = new stat_duree();
 
+  sd->setWindowTitle("statistique Duree activite");
+  sd->choix_pie();
+  sd->show();
+}
+void Garderie::sendMail(QString sujet,QString msg)
+{
+    Smtp* smtp = new Smtp("hayouni.malek@esprit.tn",mail_pass, "smtp.gmail.com");
+    connect(smtp, SIGNAL(status(QString)), this, SLOT(mailSent(QString)));
+
+    smtp->sendMail("hayouni.malek@esprit.tn", "hayouni.malek@esprit.tn" ,sujet,msg);
+}
 //------------------------------------------------------------------------------------------
 //recherche dynamique etablissement
 void Garderie::on_recherche_etablissement_textChanged(const QString &arg1){proxy_etablissement->setFilterFixedString(arg1);}
 //select sorting creteria
 void Garderie::on_sort_combo_etablissement_currentIndexChanged(int index){proxy_etablissement->setFilterKeyColumn(ui->sort_combo_etablissement->currentIndex()-1);}//combox et tableau indice decalé par 1
+
+
+//export excel
+void Garderie::on_export_excel_clicked()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Excel file"), qApp->applicationDirPath (), tr("Excel Files (*.xls)"));
+    if (fileName.isEmpty()) return;
+
+    ExportExcelObject obj(fileName, "mydata", ui->tableau_etablissement);
+
+    //colums to export
+    obj.addField(0, "id", "char(20)");
+    obj.addField(1, "nom", "char(20)");
+    obj.addField(2, "addresse", "char(50)");
+    obj.addField(3, "tel", "char(10)");
+
+    int retVal = obj.export2Excel();
+    if( retVal > 0) QMessageBox::information(this, tr("Done"),QString(tr("%1 records exported!")).arg(retVal));
+}
 
 
 

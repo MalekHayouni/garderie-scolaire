@@ -17,9 +17,12 @@
 #include <QFile>
 #include <QDataStream>
 
+#include "exportexcelobject.h"
+#include "chatbot.h"
 #include "activite.h"
 #include "etablissement.h"
-
+#include "smtp.h"
+#include "stat_duree.h"
 
 namespace Ui {
 class Garderie;
@@ -101,7 +104,9 @@ private slots:
 private:
     Ui::Garderie *ui;
     QString selected_activite="",selected_etablissement="";
-
+    stat_duree *sd;
+    ChatBot *m_chatBot;
+    QString mail_pass="!211JMT7298!";
 };
 
 #endif // GARDERIE_H
